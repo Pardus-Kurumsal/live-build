@@ -413,7 +413,7 @@ Set_defaults ()
 		armel)
 			# armel will have special images: one rootfs image and many additional kernel images.
 			# therefore we default to all available armel flavours
-			LB_LINUX_FLAVOURS="${LB_LINUX_FLAVOURS:-ixp4xx kirkwood orion5x versatile}"
+			LB_LINUX_FLAVOURS="${LB_LINUX_FLAVOURS:-kirkwood orion5x versatile}"
 			;;
 
 		armhf)
@@ -532,10 +532,12 @@ Set_defaults ()
 	then
 		case "${LB_ARCHITECTURES}" in
 			amd64|i386)
-				LB_BOOTLOADERS="syslinux"
+				LB_BOOTLOADERS="syslinux,grub-efi"
 				;;
 		esac
 	fi
+
+	LB_FIRST_BOOTLOADER=$(echo "${LB_BOOTLOADERS}" | awk -F, '{ print $1 }')
 
 	# Setting checksums
 	case "${LB_MODE}" in
@@ -845,24 +847,21 @@ Check_defaults ()
 		fi
 	fi
 
-
-	LB_PRIMARY_BOOTLOADER=$(echo "${LB_BOOTLOADERS}" | awk -F, '{ print $1 }')
-
-	if [ "${LB_PRIMARY_BOOTLOADER}" = "syslinux" ]
+	if [ "${LB_FIRST_BOOTLOADER}" = "syslinux" ]
 	then
 		# syslinux + fat or ntfs, or extlinux + ext[234] or btrfs
 		case "${LB_BINARY_FILESYSTEM}" in
 			fat*|ntfs|ext[234]|btrfs)
 				;;
 			*)
-				Echo_warning "You have selected values of LB_BOOTLOADER and LB_BINARY_FILESYSTEM which are incompatible - the syslinux family only support FAT, NTFS, ext[234] or btrfs filesystems."
+				Echo_warning "You have selected values of LB_BOOTLOADERS and LB_BINARY_FILESYSTEM which are incompatible - the syslinux family only support FAT, NTFS, ext[234] or btrfs filesystems."
 				;;
 		esac
 	fi
 
 	case "${LIVE_IMAGE_TYPE}" in
 		hdd*)
-			case "${LB_PRIMARY_BOOTLOADER}" in
+			case "${LB_FIRST_BOOTLOADER}" in
 				grub)
 					Echo_error "You have selected a combination of bootloader and image type that is currently not supported by live-build. Please use either another bootloader or a different image type."
 					exit 1

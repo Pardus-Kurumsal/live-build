@@ -1,3 +1,10 @@
+live-build (1:20151215pardus1) pardus; urgency=medium
+
+  * Add .drone.yml
+  * Manually import grub-efi support
+
+ -- Gökhan Karabulut <gokhan.karabulut@pardus.org.tr>  Wed, 19 Oct 2016 10:07:21 +0300
+
 live-build (1:20151215) unstable; urgency=medium
 
   * QA Upload.

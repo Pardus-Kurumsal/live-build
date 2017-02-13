@@ -24,24 +24,7 @@ Arguments "${@}"
 Read_conffiles config/all config/common config/bootstrap config/chroot config/binary config/source
 Set_defaults
 
-FOUND_MYSELF=""
-OLDIFS="$IFS"
-IFS=","
-for BOOTLOADER in ${LB_BOOTLOADERS}
-do
-
-       case ${BOOTLOADER} in
-               "syslinux" )
-                       FOUND_MYSELF="True"
-                       break ;;
-       esac
-
-done
-IFS="$OLDIFS"
-
-if [ -z ${FOUND_MYSELF} ] ; then
-        exit 0
-fi
+Check_Any_Bootloader_Role "syslinux"
 
 Echo_message "Begin installing syslinux..."
 
@@ -203,8 +186,8 @@ then
 		1)
 			# If multiple initrd images are being generated (by DKMS packages, etc),
 			# we likely only want the latest version.
-			mv $(ls -r1 --sort=version binary/${_INITRAMFS}/vmlinuz-* | head -n 1) binary/${_INITRAMFS}/vmlinuz
-			mv $(ls -r1 --sort=version binary/${_INITRAMFS}/initrd.img-* | head -n 1) binary/${_INITRAMFS}/initrd.img
+			ln $(ls -r1 --sort=version binary/${_INITRAMFS}/vmlinuz-* | head -n 1) binary/${_INITRAMFS}/vmlinuz
+			ln $(ls -r1 --sort=version binary/${_INITRAMFS}/initrd.img-* | head -n 1) binary/${_INITRAMFS}/initrd.img
 
 			sed -e "s|@FLAVOUR@|${LB_LINUX_FLAVOURS}|g" \
 			    -e "s|@LINUX@|/${_INITRAMFS}/vmlinuz|g" \
@@ -221,8 +204,8 @@ then
 			do
 				_NUMBER="$((${_NUMBER} + 1))"
 
-				mv binary/${_INITRAMFS}/vmlinuz-*-${_FLAVOUR} binary/${_INITRAMFS}/vmlinuz${_NUMBER}
-				mv binary/${_INITRAMFS}/initrd.img-*-${_FLAVOUR} binary/${_INITRAMFS}/initrd${_NUMBER}.img
+				ln binary/${_INITRAMFS}/vmlinuz-*-${_FLAVOUR} binary/${_INITRAMFS}/vmlinuz${_NUMBER}
+				ln binary/${_INITRAMFS}/initrd.img-*-${_FLAVOUR} binary/${_INITRAMFS}/initrd${_NUMBER}.img
 
 				if [ "${_NUMBER}" -gt 1 ]
 				then
@@ -248,7 +231,7 @@ then
 	_VERSION="$(. chroot/etc/os-release && echo ${VERSION_ID})"
 fi
 
-_VERSION="${VERSION:-none}"
+_VERSION="${_VERSION:-none}"
 
 _DISTRIBUTION="${LB_DISTRIBUTION}"
 _ARCHITECTURE="${LB_ARCHITECTURES}"
@@ -323,6 +306,13 @@ then
 	esac
 
 	rm -f "${_TARGET}/splash.svg"
+fi
+
+# Tweak the grub theme to reuse the syslinux background image
+if [ -e binary/boot/grub/live-theme/theme.txt ]; then
+    sed -i -e 's|^desktop-image:.*|desktop-image: "/isolinux/splash.png"|' \
+	-e 's|^title-text:.*|title-text: ""|' \
+	binary/boot/grub/live-theme/theme.txt
 fi
 
 case "${LB_MODE}" in

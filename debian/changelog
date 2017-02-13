@@ -1,3 +1,77 @@
+live-build (1:20170213) unstable; urgency=medium
+
+  * Drop the versatile kernel flavour on armel. It's no longer built since
+    Linux 4.9.
+
+ -- Raphaël Hertzog <hertzog@debian.org>  Mon, 13 Feb 2017 16:58:00 +0100
+
+live-build (1:20161216) unstable; urgency=medium
+
+  * Cleanup binary_loopback_cfg and offer more freedom in overriding
+    the default grub-pc configuration.
+  * Update the manual page with the missiong --bootappend-live-failsafe
+    option.
+  * Keep supporting the former --bootloader (without s).
+
+ -- Raphaël Hertzog <hertzog@debian.org>  Fri, 16 Dec 2016 10:05:26 +0100
+
+live-build (1:20161202) unstable; urgency=medium
+
+  [ Raphaël Hertzog ]
+  * Officially adopt the package. Closes: #808048
+  * Better handle empty package lists.
+  * Drop ixp4xx from available armel flavors, the image has been gone since
+    linux 3.17.
+  * Add symlinks for libgpl.c32 and libmenu.c32 which are required by
+    the "Hardware Detection Tool (HDT)" menu entry that live-build adds
+    in the advanced menu.
+  * Add EFI boot support with grub-efi, thanks to Adrian Gibanel Lopez.
+    Closes: #731709
+  * Fix usage of config/packages.chroot/*.deb that has been broken by the
+    switch to GnuPG2 by default by no longer using GnuPG but relying
+    on APT's trusted=yes attribute instead.
+    Thus we no longer have remaining key in /etc/apt/trusted.gpg
+    after building. Closes: #816204
+  * Try to reuse /isolinux/splash.png in default grub configuration.
+  * Drop debian/source/{local-options,options} as they are no longer needed.
+  * Pass components to debootstrap --second-stage. Closes: #806782
+    Thanks to Sjoerd Simons <sjoerd.simons@collabora.co.uk> for the patch.
+  * Fix behaviour of (undocumented) "#nif" conditional test. Closes: #801379
+    Thanks to Erik Cumps <erik.cumps@esaturnus.com> for the patch.
+  * Export SOURCE_DATE_EPOCH when running chroot commands. Closes: #832998
+    Thanks to Chris Lamb <lamby@debian.org> for the patch.
+  * Set xorriso's "modification time" to SOURCE_DATE_EPOCH. Closes: #831379
+    Thanks to Chris Lamb <lamby@debian.org> for the patch.
+  * Support “lb config --debootstrap-script <script>” to use an alternate
+    bootstrap script when running debootstrap. Thanks to Sjoerd Simons
+    <sjoerd@debian.org> for the initial patch. Closes: #790033
+  * Manual pages updates by jnqnfe. Closes: #774730
+  * Drop left-over translation files for removed lb_testroot command.
+  * Get rid of useless bootstrap_archive-keys script. Closes: #773775
+  * Drop an optimization in chroot_archives that has undesired side-effects.
+    Thanks to jnqnfe for the patch. Closes: #775989 
+  * Drop gpgv and debian-keyring from Suggests.
+  * Fix Check_installed function when checking against host. Thanks to jnqnfe
+    for the report. Closes: #774807
+  * Bump debhelper compat level to 10.
+  * Bump Standards-Version to 3.9.8.
+  * Use a grub theme that integrates reasonably well with the current
+    background picture.
+  * Default for LB_UNION_FILESYSTEM is now "overlay" just like in live-boot.
+  * Update the way we generate the version of live-build that is displayed by
+    lb --version.
+  * Instead of renaming kernel for syslinux, create hardlinks.
+  * Simplify grub configuration code to use only long kernel names. Put
+    advanced options in a submenu. Use distro-agnostic labels.
+
+  [ Kristian Klausen ]
+  * Include ext{3,4} journal size when calculating image size. Closes: #801712
+  * Switch d-i.debian.org URIs from http to https. Closes: #809699
+  * Fix typo in binary_syslinux. Closes: #818916
+  * Correct syslinux/extlinux mbr.bin path. Closes: #773833
+
+ -- Raphaël Hertzog <hertzog@debian.org>  Fri, 02 Dec 2016 23:33:45 +0100
+
 live-build (1:20151215) unstable; urgency=medium
 
   * QA Upload.

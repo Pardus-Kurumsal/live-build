@@ -396,7 +396,7 @@ Set_defaults ()
 	LB_CHROOT_FILESYSTEM="${LB_CHROOT_FILESYSTEM:-squashfs}"
 
 	# Setting union filesystem
-	LB_UNION_FILESYSTEM="${LB_UNION_FILESYSTEM:-aufs}"
+	LB_UNION_FILESYSTEM="${LB_UNION_FILESYSTEM:-overlay}"
 
 	# Setting interactive shell/X11/Xnest
 	LB_INTERACTIVE="${LB_INTERACTIVE:-false}"
@@ -413,7 +413,7 @@ Set_defaults ()
 		armel)
 			# armel will have special images: one rootfs image and many additional kernel images.
 			# therefore we default to all available armel flavours
-			LB_LINUX_FLAVOURS="${LB_LINUX_FLAVOURS:-ixp4xx kirkwood orion5x versatile}"
+			LB_LINUX_FLAVOURS="${LB_LINUX_FLAVOURS:-kirkwood orion5x}"
 			;;
 
 		armhf)
@@ -532,10 +532,12 @@ Set_defaults ()
 	then
 		case "${LB_ARCHITECTURES}" in
 			amd64|i386)
-				LB_BOOTLOADERS="syslinux"
+				LB_BOOTLOADERS="syslinux,grub-efi"
 				;;
 		esac
 	fi
+
+	LB_FIRST_BOOTLOADER=$(echo "${LB_BOOTLOADERS}" | awk -F, '{ print $1 }')
 
 	# Setting checksums
 	case "${LB_MODE}" in
@@ -779,44 +781,6 @@ Set_defaults ()
 
 Check_defaults ()
 {
-	if [ -n "${LIVE_BUILD_VERSION}" ]
-	then
-		# We're only checking when we're actually running the checks
-		# that's why the check for emptyness of the version;
-		# however, as live-build always declares LIVE_BUILD_VERSION
-		# internally, this is safe assumption (no cases where it's unset,
-		# except when bootstrapping the functions/defaults etc.).
-
-		CURRENT_CONFIGURATION_VERSION="$(echo ${LIVE_CONFIGURATION_VERSION} | awk -F. ' { print $1 }')"
-
-		if [ -n "${CURRENT_CONFIGURATION_VERSION}" ]
-		then
-			CORRECT_VERSION="$(echo ${LIVE_BUILD_VERSION} | awk -F. '{ print $1 }')"
-			TOO_NEW_VERSION="$((${CORRECT_VERSION} + 1))"
-			TOO_OLD_VERSION="$((${CORRECT_VERSION} - 1))"
-
-			if [ ${CURRENT_CONFIGURATION_VERSION} -ne ${CORRECT_VERSION} ]
-			then
-				if [ ${CURRENT_CONFIGURATION_VERSION} -ge ${TOO_NEW_VERSION} ]
-				then
-					Echo_error "This config tree is too new for live-build (${VERSION})."
-					Echo_error "Aborting build, please update live-build."
-
-					exit 1
-				elif [ ${CURRENT_CONFIGURATION_VERSION} -le ${TOO_OLD_VERSION} ]
-				then
-					Echo_error "This config tree is too old for live-build (${VERSION})."
-					Echo_error "Aborting build, please update the configuration."
-
-					exit 1
-				else
-					Echo_warning "This configuration does not specify a version or has a unknown version."
-					Echo_warning "Continuing build, please correct the configuration."
-				fi
-			fi
-		fi
-	fi
-
 	case "${LB_BINARY_FILESYSTEM}" in
 		ntfs)
 			if [ ! -x "$(which ntfs-3g 2>/dev/null)" ]
@@ -845,24 +809,21 @@ Check_defaults ()
 		fi
 	fi
 
-
-	LB_PRIMARY_BOOTLOADER=$(echo "${LB_BOOTLOADERS}" | awk -F, '{ print $1 }')
-
-	if [ "${LB_PRIMARY_BOOTLOADER}" = "syslinux" ]
+	if [ "${LB_FIRST_BOOTLOADER}" = "syslinux" ]
 	then
 		# syslinux + fat or ntfs, or extlinux + ext[234] or btrfs
 		case "${LB_BINARY_FILESYSTEM}" in
 			fat*|ntfs|ext[234]|btrfs)
 				;;
 			*)
-				Echo_warning "You have selected values of LB_BOOTLOADER and LB_BINARY_FILESYSTEM which are incompatible - the syslinux family only support FAT, NTFS, ext[234] or btrfs filesystems."
+				Echo_warning "You have selected values of LB_BOOTLOADERS and LB_BINARY_FILESYSTEM which are incompatible - the syslinux family only support FAT, NTFS, ext[234] or btrfs filesystems."
 				;;
 		esac
 	fi
 
 	case "${LIVE_IMAGE_TYPE}" in
 		hdd*)
-			case "${LB_PRIMARY_BOOTLOADER}" in
+			case "${LB_FIRST_BOOTLOADER}" in
 				grub)
 					Echo_error "You have selected a combination of bootloader and image type that is currently not supported by live-build. Please use either another bootloader or a different image type."
 					exit 1

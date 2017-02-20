@@ -1,3 +1,10 @@
+live-build (1:20170213pardus1) pardus; urgency=medium
+
+  * Sync with Debian. Remaining changes:
+    - Add .drone.yml
+
+ -- Gökhan Karabulut <gokhanettin@gmail.com>  Mon, 20 Feb 2017 19:04:31 +0300
+
 live-build (1:20170213) unstable; urgency=medium
 
   * Drop the versatile kernel flavour on armel. It's no longer built since
